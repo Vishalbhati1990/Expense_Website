@@ -1,0 +1,1201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wayfare — travel expense ledger</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+  :root{
+    --navy: #14213D;
+    --navy-deep: #0E1830;
+    --cream: #F4EFE1;
+    --cream-dim: #E8E0CC;
+    --ink: #1C2B4A;
+    --gold: #C99A2E;
+    --gold-bright: #E0B646;
+    --rust: #A8452F;
+    --sage: #6B8763;
+    --line: rgba(28,43,74,0.14);
+    --line-on-navy: rgba(244,239,225,0.16);
+    --shadow: 0 18px 40px rgba(14,24,48,0.28);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background: var(--navy);
+    background-image:
+      radial-gradient(circle at 12% 8%, rgba(201,154,46,0.10), transparent 40%),
+      radial-gradient(circle at 88% 92%, rgba(107,135,99,0.10), transparent 45%);
+    font-family: 'IBM Plex Sans', sans-serif;
+    color: var(--cream);
+    min-height: 100vh;
+  }
+  .app{
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 40px 24px 80px;
+  }
+
+  /* ---------- Header ---------- */
+  .hero{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-end;
+    gap:20px;
+    margin-bottom: 34px;
+    border-bottom: 1px solid var(--line-on-navy);
+    padding-bottom: 22px;
+    flex-wrap: wrap;
+  }
+  .hero h1{
+    font-family:'Fraunces', serif;
+    font-optical-sizing:auto;
+    font-weight:600;
+    font-size: 2.4rem;
+    margin:0 0 6px;
+    letter-spacing: -0.01em;
+  }
+  .hero p{
+    margin:0;
+    color: rgba(244,239,225,0.62);
+    font-size: 0.95rem;
+    max-width: 40ch;
+  }
+  button{
+    font-family: 'IBM Plex Sans', sans-serif;
+    cursor: pointer;
+    border: none;
+  }
+  select, input, textarea{ font-family:'IBM Plex Sans', sans-serif; }
+  select:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visible, .trip-card:focus-visible{
+    outline: 2px solid var(--gold-bright);
+    outline-offset: 2px;
+  }
+  .btn-primary{
+    background: var(--gold);
+    color: var(--navy-deep);
+    font-weight: 600;
+    padding: 10px 18px;
+    border-radius: 8px;
+    font-size: 0.92rem;
+    transition: background 0.15s ease;
+    white-space: nowrap;
+  }
+  .btn-primary:hover{ background: var(--gold-bright); }
+  .btn-ghost{
+    background: transparent;
+    color: var(--cream);
+    border: 1px solid var(--line-on-navy);
+    padding: 9px 16px;
+    border-radius: 8px;
+    font-size: 0.88rem;
+  }
+  .btn-ghost:hover{ border-color: var(--gold); color: var(--gold-bright); }
+  select.trip-select{
+    background: transparent;
+    color: var(--cream);
+    border: 1px solid var(--line-on-navy);
+    border-radius: 8px;
+    padding: 9px 12px;
+    font-size: 0.85rem;
+  }
+  select.trip-select option{ color: var(--ink); }
+  .back-link{
+    background:none;
+    color: rgba(244,239,225,0.7);
+    font-size: 0.88rem;
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    padding: 6px 0;
+  }
+  .back-link:hover{ color: var(--gold-bright); }
+
+  /* ---------- Empty state ---------- */
+  .empty{
+    text-align:center;
+    padding: 80px 20px;
+    color: rgba(244,239,225,0.7);
+  }
+  .empty h2{
+    font-family:'Fraunces', serif;
+    font-weight: 600;
+    font-size: 1.6rem;
+    color: var(--cream);
+    margin-bottom: 10px;
+  }
+
+  /* ---------- Trip grid (list view) ---------- */
+  .trip-grid{
+    display:grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 20px;
+  }
+  .trip-card{
+    background: var(--cream);
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    text-align: left;
+    color: var(--ink);
+    display: block;
+  }
+  .trip-card:hover{ transform: translateY(-4px); }
+  .trip-card-cover{
+    height: 130px;
+    background: linear-gradient(135deg, var(--navy), var(--navy-deep));
+    position: relative;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .trip-card-cover img{ width:100%; height:100%; object-fit:cover; display:block; }
+  .trip-card-cover .placeholder-mark{
+    font-family:'Fraunces', serif;
+    font-size: 1.8rem;
+    color: rgba(244,239,225,0.28);
+    letter-spacing: 0.04em;
+  }
+  .trip-card-body{ padding: 16px 18px 18px; }
+  .trip-card-name{
+    font-family:'Fraunces', serif;
+    font-weight: 600;
+    font-size: 1.05rem;
+    margin: 0 0 2px;
+  }
+  .trip-card-dest{ font-size: 0.8rem; color: rgba(28,43,74,0.55); margin-bottom: 12px; }
+  .trip-card-bar-track{ height:6px; background: var(--cream-dim); border-radius:4px; overflow:hidden; margin-bottom:8px; }
+  .trip-card-bar-fill{ height:100%; background: var(--sage); border-radius:4px; }
+  .trip-card-bar-fill.over{ background: var(--rust); }
+  .trip-card-meta{ display:flex; justify-content:space-between; font-size: 0.76rem; color: rgba(28,43,74,0.5); }
+  .trip-card-add{
+    border: 2px dashed var(--line-on-navy);
+    border-radius: 14px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    min-height: 190px;
+    color: rgba(244,239,225,0.5);
+    background: transparent;
+    cursor:pointer;
+    font-size: 0.9rem;
+  }
+  .trip-card-add:hover{ border-color: var(--gold); color: var(--gold-bright); }
+  .trip-card-add .plus{ font-family:'Fraunces', serif; font-size: 2rem; line-height:1; }
+
+  /* ---------- Detail sub-header ---------- */
+  .detail-subhead{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 18px;
+  }
+  .detail-subhead .actions{ display:flex; gap:8px; }
+
+  /* ---------- Boarding pass card ---------- */
+  .pass{
+    position: relative;
+    background: var(--cream);
+    color: var(--ink);
+    border-radius: 14px;
+    box-shadow: var(--shadow);
+    display: grid;
+    grid-template-columns: 1fr 200px;
+    overflow: hidden;
+    margin-bottom: 30px;
+  }
+  .pass-main{ padding: 28px 30px; }
+  .pass-eyebrow{
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
+    color: var(--rust);
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+  .pass-dest{
+    font-family:'Fraunces', serif;
+    font-weight: 700;
+    font-size: 2rem;
+    margin: 0 0 4px;
+    line-height: 1.05;
+  }
+  .pass-dates{ color: rgba(28,43,74,0.6); font-size: 0.9rem; margin-bottom: 22px; }
+  .pass-budget-row{ display:flex; justify-content: space-between; align-items:baseline; margin-bottom: 8px; }
+  .pass-budget-label{ font-size: 0.82rem; color: rgba(28,43,74,0.65); }
+  .pass-budget-amt{ font-family:'IBM Plex Mono', monospace; font-size: 0.95rem; font-weight:500;}
+  .pass-bar-track{ height: 8px; background: var(--cream-dim); border-radius: 5px; overflow: hidden; }
+  .pass-bar-fill{ height: 100%; border-radius: 5px; background: var(--sage); transition: width 0.4s ease; }
+  .pass-bar-fill.over{ background: var(--rust); }
+  .pass-remaining{ margin-top: 10px; font-size: 0.85rem; color: rgba(28,43,74,0.65); }
+  .pass-remaining strong{ color: var(--ink); }
+  .pass-stub{
+    background: var(--navy);
+    color: var(--cream);
+    padding: 28px 20px;
+    display:flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items:center;
+    text-align:center;
+    position: relative;
+    border-left: 2px dashed rgba(244,239,225,0.25);
+  }
+  .pass-stub::before, .pass-stub::after{
+    content:"";
+    position:absolute;
+    width: 22px; height: 22px;
+    background: var(--navy-deep);
+    border-radius: 50%;
+    left: -11px;
+  }
+  .pass-stub::before{ top: -11px; }
+  .pass-stub::after{ bottom: -11px; }
+  .pass-stub .big-num{ font-family:'Fraunces', serif; font-weight: 700; font-size: 2.1rem; line-height: 1; }
+  .pass-stub .big-label{ font-size: 0.7rem; letter-spacing: 0.05em; color: rgba(244,239,225,0.6); margin-top: 8px; }
+  @media (max-width: 620px){
+    .pass{ grid-template-columns: 1fr; }
+    .pass-stub{ border-left:none; border-top: 2px dashed rgba(244,239,225,0.25); flex-direction: row; gap: 12px; padding: 18px; }
+    .pass-stub::before, .pass-stub::after{ left: 50%; margin-left:-11px; }
+    .pass-stub::before{ top:-11px; }
+    .pass-stub::after{ top:auto; bottom:-11px; }
+  }
+
+  /* ---------- Section headers ---------- */
+  .section-head{ display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin: 0 0 14px; }
+  .section-head h2{ font-family:'Fraunces', serif; font-weight: 600; font-size: 1.25rem; margin: 0; }
+
+  /* ---------- Photos ---------- */
+  .photo-section{ margin-bottom: 30px; }
+  .photo-grid{ display:grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 10px; }
+  .photo-thumb{ position:relative; aspect-ratio: 1; border-radius: 10px; overflow:hidden; cursor:pointer; background: rgba(244,239,225,0.06); }
+  .photo-thumb img{ width:100%; height:100%; object-fit:cover; display:block; }
+  .photo-remove{
+    position:absolute; top:5px; right:5px;
+    background: rgba(14,24,48,0.72);
+    color: var(--cream);
+    border-radius: 50%;
+    width: 22px; height: 22px;
+    display:flex; align-items:center; justify-content:center;
+    font-size: 0.7rem;
+    line-height:1;
+  }
+  .photo-remove:hover{ background: var(--rust); }
+  .photo-add-tile{
+    border: 2px dashed var(--line-on-navy);
+    border-radius: 10px;
+    aspect-ratio: 1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap: 4px;
+    color: rgba(244,239,225,0.5);
+    font-size: 0.75rem;
+    cursor:pointer;
+    text-align:center;
+    padding: 6px;
+  }
+  .photo-add-tile:hover{ border-color: var(--gold); color: var(--gold-bright); }
+  .photo-add-tile .plus{ font-family:'Fraunces', serif; font-size: 1.5rem; line-height:1; }
+  .photo-empty{ color: rgba(244,239,225,0.5); font-size: 0.88rem; margin-bottom: 10px; }
+
+  /* ---------- Category chart ---------- */
+  .chart-block{ margin-bottom: 30px; }
+  .cat-row{ display:grid; grid-template-columns: 110px 1fr 80px; align-items:center; gap: 12px; margin-bottom: 10px; font-size: 0.86rem; }
+  .cat-name{ color: rgba(244,239,225,0.85); }
+  .cat-track{ height: 10px; background: rgba(244,239,225,0.1); border-radius: 6px; overflow:hidden; }
+  .cat-fill{ height:100%; border-radius:6px; transition: width 0.5s ease; }
+  .cat-amt{ font-family:'IBM Plex Mono', monospace; text-align:right; color: rgba(244,239,225,0.85); }
+  .chart-empty{ color: rgba(244,239,225,0.5); font-size: 0.88rem; padding: 10px 0; }
+
+  /* ---------- Ledger ---------- */
+  .ledger{ margin-bottom: 20px; }
+  .ledger-table{ width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+  .ledger-table thead th{
+    text-align:left; font-weight: 500; color: rgba(244,239,225,0.5);
+    font-size: 0.76rem; letter-spacing: 0.03em; padding: 0 10px 10px;
+    border-bottom: 1px solid var(--line-on-navy);
+  }
+  .ledger-table td{ padding: 12px 10px; border-bottom: 1px solid var(--line-on-navy); vertical-align: top; }
+  .ledger-table tbody tr:hover{ background: rgba(244,239,225,0.04); }
+  .ledger-amt{ font-family:'IBM Plex Mono', monospace; text-align:right; white-space:nowrap; }
+  .cat-pill{ display:inline-block; padding: 3px 9px; border-radius: 20px; font-size: 0.74rem; font-weight: 500; color: var(--navy-deep); }
+  .ledger-note{ color: rgba(244,239,225,0.55); font-size: 0.84rem; }
+  .row-actions{ text-align:right; }
+  .icon-btn{ background: none; color: rgba(244,239,225,0.4); font-size: 1rem; padding: 4px 8px; border-radius: 6px; }
+  .icon-btn:hover{ color: var(--rust); background: rgba(168,69,47,0.12); }
+  .ledger-empty{ text-align:center; padding: 40px 10px; color: rgba(244,239,225,0.5); font-size: 0.9rem; }
+  .ledger-controls{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+  .ledger-footer{ display:flex; justify-content:flex-end; gap: 10px; margin-top: 16px; flex-wrap:wrap; }
+
+  /* ---------- Modal / overlay ---------- */
+  .overlay{ position: fixed; inset:0; background: rgba(14,24,48,0.6); display:none; align-items:center; justify-content:center; padding: 20px; z-index: 40; }
+  .overlay.open{ display:flex; }
+  .modal{
+    background: var(--cream); color: var(--ink); border-radius: 14px; width: 100%; max-width: 440px;
+    padding: 28px 26px; box-shadow: var(--shadow); max-height: 88vh; overflow-y: auto;
+  }
+  .modal h3{ font-family:'Fraunces', serif; font-weight: 600; font-size: 1.3rem; margin: 0 0 18px; }
+  .field{ margin-bottom: 14px; }
+  .field label{ display:block; font-size: 0.78rem; color: rgba(28,43,74,0.6); margin-bottom: 5px; }
+  .field input, .field select, .field textarea{
+    width: 100%; padding: 9px 11px; border-radius: 7px; border: 1px solid var(--line);
+    background: #fff; font-size: 0.92rem; color: var(--ink);
+  }
+  .field-row{ display:flex; gap: 12px; }
+  .field-row .field{ flex:1; }
+  .modal-actions{ display:flex; justify-content:flex-end; gap: 10px; margin-top: 20px; }
+  .btn-dark{ background: var(--navy); color: var(--cream); padding: 10px 18px; border-radius: 8px; font-size: 0.9rem; font-weight: 500; }
+  .btn-dark:hover{ background: var(--navy-deep); }
+  .btn-text{ background: none; color: rgba(28,43,74,0.55); padding: 10px 12px; font-size: 0.9rem; }
+  .btn-text:hover{ color: var(--rust); }
+
+  /* ---------- Lightbox ---------- */
+  .lightbox-inner{ position:relative; max-width: 92vw; max-height: 88vh; }
+  .lightbox-inner img{ max-width: 92vw; max-height: 88vh; border-radius: 10px; display:block; box-shadow: var(--shadow); }
+  .lightbox-close{
+    position:absolute; top:-14px; right:-14px; background: var(--cream); color: var(--ink);
+    border-radius: 50%; width: 32px; height:32px; display:flex; align-items:center; justify-content:center; font-size:1rem;
+  }
+
+  .toast{
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px);
+    background: var(--navy-deep); color: var(--cream); padding: 12px 20px; border-radius: 8px;
+    font-size: 0.88rem; box-shadow: var(--shadow); opacity: 0; pointer-events:none;
+    transition: opacity 0.25s ease, transform 0.25s ease; z-index: 60; max-width: 90vw; text-align:center;
+  }
+  .toast.show{ opacity:1; transform: translateX(-50%) translateY(0); pointer-events:auto; }
+
+  @media (max-width: 620px){
+    .hero{ align-items:flex-start; }
+    .ledger-table thead{ display:none; }
+    .ledger-table, .ledger-table tbody, .ledger-table tr, .ledger-table td{ display:block; width:100%; }
+    .ledger-table tr{ padding: 10px 0; border-bottom: 1px solid var(--line-on-navy); }
+    .ledger-table td{ border:none; padding: 3px 0; }
+    .ledger-amt{ text-align:left; font-size: 1rem; font-weight:600; }
+    .row-actions{ text-align:left; }
+  }
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <div class="hero">
+    <div>
+      <h1>Wayfare</h1>
+      <p>A ledger for every trip — what it cost, where it went, and what's left.</p>
+    </div>
+    <div id="headerActions"></div>
+  </div>
+  <div id="content"></div>
+</div>
+
+<div class="overlay" id="tripOverlay">
+  <div class="modal">
+    <h3 id="tripModalTitle">New trip</h3>
+    <div class="field">
+      <label for="tripName">Trip name</label>
+      <input type="text" id="tripName" placeholder="e.g. Kyoto in autumn">
+    </div>
+    <div class="field">
+      <label for="tripDest">Destination</label>
+      <input type="text" id="tripDest" placeholder="e.g. Kyoto, Japan">
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label for="tripStart">Start date</label>
+        <input type="date" id="tripStart">
+      </div>
+      <div class="field">
+        <label for="tripEnd">End date</label>
+        <input type="date" id="tripEnd">
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label for="tripBudget">Budget</label>
+        <input type="number" id="tripBudget" placeholder="0" min="0" step="0.01">
+      </div>
+      <div class="field">
+        <label for="tripCurrency">Currency</label>
+        <select id="tripCurrency">
+          <option value="$">USD — $</option>
+          <option value="€">EUR — €</option>
+          <option value="£">GBP — £</option>
+          <option value="₹">INR — ₹</option>
+          <option value="¥">JPY — ¥</option>
+          <option value="A$">AUD — A$</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-text" id="tripCancel">Cancel</button>
+      <button class="btn-dark" id="tripSave">Save trip</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="expOverlay">
+  <div class="modal">
+    <h3>Add expense</h3>
+    <div class="field-row">
+      <div class="field">
+        <label for="expDate">Date</label>
+        <input type="date" id="expDate">
+      </div>
+      <div class="field">
+        <label for="expCategory">Category</label>
+        <select id="expCategory"></select>
+      </div>
+    </div>
+    <div class="field">
+      <label for="expAmount">Amount</label>
+      <input type="number" id="expAmount" placeholder="0" min="0" step="0.01">
+    </div>
+    <div class="field">
+      <label for="expNote">Note (optional)</label>
+      <input type="text" id="expNote" placeholder="e.g. Train tickets to Arashiyama">
+    </div>
+    <div class="modal-actions">
+      <button class="btn-text" id="expCancel">Cancel</button>
+      <button class="btn-dark" id="expSave">Add expense</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="lightboxOverlay">
+  <div class="lightbox-inner">
+    <button class="lightbox-close" id="lightboxClose">✕</button>
+    <img id="lightboxImg" src="" alt="Trip photo">
+  </div>
+</div>
+
+<input type="file" id="photoInput" accept="image/*" multiple style="display:none;">
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  const CATEGORIES = [
+    { name: 'Flights',    color: '#C99A2E' },
+    { name: 'Lodging',    color: '#6B8763' },
+    { name: 'Food',       color: '#A8452F' },
+    { name: 'Transport',  color: '#5C7A9E' },
+    { name: 'Activities', color: '#8A6BA8' },
+    { name: 'Shopping',   color: '#B5824A' },
+    { name: 'Other',      color: '#8A8478' },
+  ];
+  const catColor = name => (CATEGORIES.find(c => c.name === name) || CATEGORIES[6]).color;
+
+  let trips = [];
+  let expenses = {};   // tripId -> array
+  let photos = {};     // tripId -> array of {id, dataUrl}
+  let view = 'list';   // 'list' | 'detail'
+  let selectedTripId = null;
+  let editingTripId = null;
+  let ledgerFilter = 'All';
+
+  const $ = id => document.getElementById(id);
+
+  function toast(msg){
+    const t = $('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(()=> t.classList.remove('show'), 2200);
+  }
+
+  function fmt(n){
+    return Number(n).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  function escapeHtml(s){
+    const d = document.createElement('div');
+    d.textContent = s;
+    return d.innerHTML;
+  }
+
+  // ---------- storage ----------
+  async function loadAll(){
+    try{
+      const list = await window.storage.list('trips:');
+      const keys = (list && list.keys) || [];
+      const loaded = [];
+      for(const k of keys){
+        try{
+          const r = await window.storage.get(k);
+          if(r && r.value) loaded.push(JSON.parse(r.value));
+        }catch(e){ /* skip unreadable */ }
+      }
+      loaded.sort((a,b)=> (a.startDate||'').localeCompare(b.startDate||''));
+      trips = loaded;
+    }catch(e){ trips = []; }
+
+    for(const trip of trips){
+      try{
+        const r = await window.storage.get('expenses:' + trip.id);
+        expenses[trip.id] = r && r.value ? JSON.parse(r.value) : [];
+      }catch(e){ expenses[trip.id] = []; }
+      try{
+        const r = await window.storage.get('photos:' + trip.id);
+        photos[trip.id] = r && r.value ? JSON.parse(r.value) : [];
+      }catch(e){ photos[trip.id] = []; }
+    }
+  }
+
+  async function saveTrip(trip){ await window.storage.set('trips:' + trip.id, JSON.stringify(trip)); }
+  async function deleteTripStorage(id){
+    await window.storage.delete('trips:' + id);
+    await window.storage.delete('expenses:' + id);
+    await window.storage.delete('photos:' + id);
+  }
+  async function saveExpenses(tripId){ await window.storage.set('expenses:' + tripId, JSON.stringify(expenses[tripId] || [])); }
+  async function savePhotos(tripId){ await window.storage.set('photos:' + tripId, JSON.stringify(photos[tripId] || [])); }
+
+  function currentTrip(){ return trips.find(t => t.id === selectedTripId); }
+
+  function openTrip(id){
+    selectedTripId = id;
+    ledgerFilter = 'All';
+    view = 'detail';
+    render();
+    window.scrollTo(0,0);
+  }
+  function goToList(){
+    view = 'list';
+    render();
+    window.scrollTo(0,0);
+  }
+
+  function daysBetween(start, end){
+    if(!start || !end) return 0;
+    const a = new Date(start), b = new Date(end);
+    const diff = Math.round((b - a) / 86400000) + 1;
+    return diff > 0 ? diff : 0;
+  }
+
+  function formatRange(start, end){
+    if(!start && !end) return 'Dates not set';
+    const opts = { month: 'short', day: 'numeric', year: 'numeric' };
+    const s = start ? new Date(start + 'T00:00:00').toLocaleDateString(undefined, opts) : '?';
+    const e = end ? new Date(end + 'T00:00:00').toLocaleDateString(undefined, opts) : '?';
+    return `${s} — ${e}`;
+  }
+
+  function tripSpent(id){ return (expenses[id] || []).reduce((s,e)=> s + Number(e.amount), 0); }
+
+  // ---------- header ----------
+  function renderHeaderActions(){
+    const el = $('headerActions');
+    el.innerHTML = '';
+    if(view === 'list'){
+      const btn = document.createElement('button');
+      btn.className = 'btn-primary';
+      btn.textContent = '+ New trip';
+      btn.addEventListener('click', () => openTripModal());
+      el.appendChild(btn);
+    } else {
+      const back = document.createElement('button');
+      back.className = 'back-link';
+      back.innerHTML = '← All trips';
+      back.addEventListener('click', goToList);
+      el.appendChild(back);
+    }
+  }
+
+  // ---------- router ----------
+  function render(){
+    renderHeaderActions();
+    const content = $('content');
+    content.innerHTML = '';
+    if(view === 'detail' && currentTrip()){
+      content.appendChild(buildDetailView(currentTrip()));
+    } else {
+      view = 'list';
+      content.appendChild(buildListView());
+    }
+  }
+
+  // ---------- list view ----------
+  function buildListView(){
+    const wrap = document.createElement('div');
+    if(!trips.length){
+      wrap.className = 'empty';
+      wrap.innerHTML = `<h2>No trips yet</h2><p>Start a trip to begin tracking what it costs.</p>`;
+      const btn = document.createElement('button');
+      btn.className = 'btn-primary';
+      btn.style.marginTop = '16px';
+      btn.textContent = '+ Plan a trip';
+      btn.addEventListener('click', () => openTripModal());
+      wrap.appendChild(document.createElement('br'));
+      wrap.appendChild(btn);
+      return wrap;
+    }
+
+    const grid = document.createElement('div');
+    grid.className = 'trip-grid';
+    trips.forEach(trip => grid.appendChild(buildTripCard(trip)));
+
+    const addTile = document.createElement('div');
+    addTile.className = 'trip-card-add';
+    addTile.innerHTML = `<span class="plus">+</span><span>New trip</span>`;
+    addTile.addEventListener('click', () => openTripModal());
+    grid.appendChild(addTile);
+
+    wrap.appendChild(grid);
+    return wrap;
+  }
+
+  function buildTripCard(trip){
+    const card = document.createElement('div');
+    card.className = 'trip-card';
+    card.tabIndex = 0;
+
+    const spent = tripSpent(trip.id);
+    const budget = Number(trip.budget) || 0;
+    const pct = budget > 0 ? Math.min(100, (spent / budget) * 100) : (spent > 0 ? 100 : 0);
+    const over = budget > 0 && spent > budget;
+    const cover = (photos[trip.id] && photos[trip.id][0]) ? photos[trip.id][0].dataUrl : null;
+
+    const coverEl = document.createElement('div');
+    coverEl.className = 'trip-card-cover';
+    if(cover){
+      coverEl.innerHTML = `<img src="${cover}" alt="${escapeHtml(trip.name)}">`;
+    } else {
+      coverEl.innerHTML = `<span class="placeholder-mark">${escapeHtml((trip.destination || trip.name || '?').slice(0,1).toUpperCase())}</span>`;
+    }
+
+    const body = document.createElement('div');
+    body.className = 'trip-card-body';
+    body.innerHTML = `
+      <div class="trip-card-name">${escapeHtml(trip.name)}</div>
+      <div class="trip-card-dest">${escapeHtml(trip.destination || 'Destination TBD')}</div>
+      <div class="trip-card-bar-track"><div class="trip-card-bar-fill ${over ? 'over' : ''}" style="width:${pct}%"></div></div>
+      <div class="trip-card-meta">
+        <span>${trip.currency}${fmt(spent)}${budget>0 ? ' / ' + trip.currency + fmt(budget) : ' spent'}</span>
+        <span>${(expenses[trip.id]||[]).length} item${(expenses[trip.id]||[]).length===1?'':'s'}</span>
+      </div>
+    `;
+
+    card.appendChild(coverEl);
+    card.appendChild(body);
+    card.addEventListener('click', () => openTrip(trip.id));
+    card.addEventListener('keydown', e => { if(e.key === 'Enter') openTrip(trip.id); });
+    return card;
+  }
+
+  // ---------- detail view ----------
+  function buildDetailView(trip){
+    const wrap = document.createElement('div');
+
+    const subhead = document.createElement('div');
+    subhead.className = 'detail-subhead';
+    const backBtn = document.createElement('button');
+    backBtn.className = 'back-link';
+    backBtn.innerHTML = '← All trips';
+    backBtn.addEventListener('click', goToList);
+    const actions = document.createElement('div');
+    actions.className = 'actions';
+    const editBtn = document.createElement('button');
+    editBtn.className = 'btn-ghost';
+    editBtn.textContent = 'Edit trip';
+    editBtn.addEventListener('click', () => openTripModal(trip));
+    const delBtn = document.createElement('button');
+    delBtn.className = 'btn-ghost';
+    delBtn.style.color = '#E08A73';
+    delBtn.textContent = 'Delete trip';
+    delBtn.addEventListener('click', () => confirmDeleteTrip(trip));
+    actions.appendChild(editBtn);
+    actions.appendChild(delBtn);
+    subhead.appendChild(backBtn);
+    subhead.appendChild(actions);
+    wrap.appendChild(subhead);
+
+    const tripExpenses = (expenses[trip.id] || []).slice().sort((a,b)=> b.date.localeCompare(a.date));
+    const spent = tripExpenses.reduce((s,e)=> s + Number(e.amount), 0);
+    const budget = Number(trip.budget) || 0;
+    const remaining = budget - spent;
+    const pct = budget > 0 ? Math.min(100, (spent / budget) * 100) : (spent>0?100:0);
+    const over = budget > 0 && spent > budget;
+    const days = daysBetween(trip.startDate, trip.endDate);
+    const perDay = days > 0 ? spent / days : spent;
+
+    wrap.appendChild(buildPass(trip, spent, budget, remaining, pct, over));
+    wrap.appendChild(buildPhotoSection(trip));
+    wrap.appendChild(buildCategoryChart(trip, tripExpenses));
+    wrap.appendChild(buildStatsLine(days, perDay, trip.currency));
+    wrap.appendChild(buildLedger(trip, tripExpenses));
+
+    return wrap;
+  }
+
+  function buildPass(trip, spent, budget, remaining, pct, over){
+    const wrap = document.createElement('div');
+    wrap.className = 'pass';
+
+    const main = document.createElement('div');
+    main.className = 'pass-main';
+    main.innerHTML = `
+      <div class="pass-eyebrow">${escapeHtml(trip.name)}</div>
+      <div class="pass-dest">${escapeHtml(trip.destination || 'Destination TBD')}</div>
+      <div class="pass-dates">${formatRange(trip.startDate, trip.endDate)}</div>
+      <div class="pass-budget-row">
+        <span class="pass-budget-label">Spent of budget</span>
+        <span class="pass-budget-amt">${trip.currency}${fmt(spent)} ${budget>0 ? '/ ' + trip.currency + fmt(budget) : ''}</span>
+      </div>
+      <div class="pass-bar-track"><div class="pass-bar-fill ${over?'over':''}" style="width:${pct}%"></div></div>
+      <div class="pass-remaining">${
+        budget > 0
+          ? (over ? `<strong>${trip.currency}${fmt(Math.abs(remaining))}</strong> over budget` : `<strong>${trip.currency}${fmt(remaining)}</strong> remaining`)
+          : 'No budget set for this trip'
+      }</div>
+    `;
+
+    const stub = document.createElement('div');
+    stub.className = 'pass-stub';
+    stub.innerHTML = `<div class="big-num">${(expenses[trip.id]||[]).length}</div><div class="big-label">EXPENSES LOGGED</div>`;
+
+    wrap.appendChild(main);
+    wrap.appendChild(stub);
+    return wrap;
+  }
+
+  // ---------- photos ----------
+  function buildPhotoSection(trip){
+    const wrap = document.createElement('div');
+    wrap.className = 'photo-section';
+    const head = document.createElement('div');
+    head.className = 'section-head';
+    head.innerHTML = `<h2>Photos</h2>`;
+    wrap.appendChild(head);
+
+    const tripPhotos = photos[trip.id] || [];
+    const grid = document.createElement('div');
+    grid.className = 'photo-grid';
+
+    tripPhotos.forEach(p => {
+      const thumb = document.createElement('div');
+      thumb.className = 'photo-thumb';
+      const img = document.createElement('img');
+      img.src = p.dataUrl;
+      img.alt = 'Trip photo';
+      thumb.appendChild(img);
+      const rm = document.createElement('button');
+      rm.className = 'photo-remove';
+      rm.textContent = '✕';
+      rm.title = 'Remove photo';
+      rm.addEventListener('click', e => { e.stopPropagation(); deletePhoto(trip.id, p.id); });
+      thumb.appendChild(rm);
+      thumb.addEventListener('click', () => openLightbox(p.dataUrl));
+      grid.appendChild(thumb);
+    });
+
+    const addTile = document.createElement('div');
+    addTile.className = 'photo-add-tile';
+    addTile.innerHTML = `<span class="plus">+</span><span>Add photo</span>`;
+    addTile.addEventListener('click', () => {
+      $('photoInput').dataset.tripId = trip.id;
+      $('photoInput').value = '';
+      $('photoInput').click();
+    });
+    grid.appendChild(addTile);
+
+    wrap.appendChild(grid);
+    return wrap;
+  }
+
+  function openLightbox(dataUrl){
+    $('lightboxImg').src = dataUrl;
+    $('lightboxOverlay').classList.add('open');
+  }
+  function closeLightbox(){
+    $('lightboxOverlay').classList.remove('open');
+    $('lightboxImg').src = '';
+  }
+
+  function resizeImage(file){
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const img = new Image();
+        img.onload = () => {
+          const maxDim = 1000;
+          let { width, height } = img;
+          if(width > height){
+            if(width > maxDim){ height = Math.round(height * maxDim / width); width = maxDim; }
+          } else {
+            if(height > maxDim){ width = Math.round(width * maxDim / height); height = maxDim; }
+          }
+          const canvas = document.createElement('canvas');
+          canvas.width = width; canvas.height = height;
+          canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+          resolve(canvas.toDataURL('image/jpeg', 0.72));
+        };
+        img.onerror = () => reject(new Error('Could not read image'));
+        img.src = reader.result;
+      };
+      reader.onerror = () => reject(new Error('Could not read file'));
+      reader.readAsDataURL(file);
+    });
+  }
+
+  async function handlePhotoFiles(tripId, fileList){
+    const files = Array.from(fileList).filter(f => f.type.startsWith('image/'));
+    if(!files.length) return;
+    toast(`Adding ${files.length} photo${files.length===1?'':'s'}…`);
+    photos[tripId] = photos[tripId] || [];
+    let added = 0;
+    for(const file of files){
+      try{
+        const dataUrl = await resizeImage(file);
+        photos[tripId].push({ id: 'photo_' + Date.now() + '_' + Math.random().toString(36).slice(2,7), dataUrl });
+        added++;
+      }catch(e){ /* skip file that failed to process */ }
+    }
+    try{
+      await savePhotos(tripId);
+      render();
+      toast(`${added} photo${added===1?'':'s'} added`);
+    }catch(e){
+      toast("Couldn't save photos — try fewer or smaller images");
+    }
+  }
+
+  async function deletePhoto(tripId, photoId){
+    photos[tripId] = (photos[tripId] || []).filter(p => p.id !== photoId);
+    await savePhotos(tripId);
+    render();
+    toast('Photo removed');
+  }
+
+  // ---------- category chart ----------
+  function categoryTotals(tripExpenses){
+    const totals = {};
+    tripExpenses.forEach(e => { totals[e.category] = (totals[e.category] || 0) + Number(e.amount); });
+    return Object.entries(totals).sort((a,b)=> b[1]-a[1]);
+  }
+
+  function buildCategoryChart(trip, tripExpenses){
+    const wrap = document.createElement('div');
+    wrap.className = 'chart-block';
+    const head = document.createElement('div');
+    head.className = 'section-head';
+    head.innerHTML = `<h2>By category</h2>`;
+    wrap.appendChild(head);
+
+    if(!tripExpenses.length){
+      const e = document.createElement('div');
+      e.className = 'chart-empty';
+      e.textContent = 'Add an expense to see the breakdown.';
+      wrap.appendChild(e);
+      return wrap;
+    }
+
+    const totals = categoryTotals(tripExpenses);
+    const maxVal = Math.max(...totals.map(([,v]) => v));
+
+    totals.forEach(([cat, amt]) => {
+      const row = document.createElement('div');
+      row.className = 'cat-row';
+      row.innerHTML = `
+        <div class="cat-name">${escapeHtml(cat)}</div>
+        <div class="cat-track"><div class="cat-fill" style="width:${(amt/maxVal)*100}%; background:${catColor(cat)}"></div></div>
+        <div class="cat-amt">${trip.currency}${fmt(amt)}</div>
+      `;
+      wrap.appendChild(row);
+    });
+
+    return wrap;
+  }
+
+  function buildStatsLine(days, perDay, currency){
+    const wrap = document.createElement('div');
+    wrap.style.cssText = 'color:rgba(244,239,225,0.55); font-size:0.85rem; margin: -14px 0 28px;';
+    wrap.textContent = days > 0
+      ? `${days} day trip · averaging ${currency}${fmt(perDay)} per day`
+      : `Averaging ${currency}${fmt(perDay)} so far`;
+    return wrap;
+  }
+
+  // ---------- ledger ----------
+  function buildLedger(trip, tripExpenses){
+    const wrap = document.createElement('div');
+    wrap.className = 'ledger';
+    const head = document.createElement('div');
+    head.className = 'section-head';
+    head.innerHTML = `<h2>Expenses</h2>`;
+
+    const controls = document.createElement('div');
+    controls.className = 'ledger-controls';
+
+    if(tripExpenses.length){
+      const usedCats = Array.from(new Set(tripExpenses.map(e => e.category)));
+      if(!usedCats.includes(ledgerFilter)) ledgerFilter = 'All';
+      const filterSel = document.createElement('select');
+      filterSel.className = 'trip-select';
+      const allOpt = document.createElement('option');
+      allOpt.value = 'All';
+      allOpt.textContent = 'All categories';
+      filterSel.appendChild(allOpt);
+      usedCats.forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c; opt.textContent = c;
+        filterSel.appendChild(opt);
+      });
+      filterSel.value = ledgerFilter;
+      filterSel.addEventListener('change', e => { ledgerFilter = e.target.value; render(); });
+      controls.appendChild(filterSel);
+    }
+
+    const addBtn = document.createElement('button');
+    addBtn.className = 'btn-primary';
+    addBtn.textContent = '+ Add expense';
+    addBtn.addEventListener('click', () => openExpenseModal(trip));
+    controls.appendChild(addBtn);
+    head.appendChild(controls);
+    wrap.appendChild(head);
+
+    if(!tripExpenses.length){
+      const e = document.createElement('div');
+      e.className = 'ledger-empty';
+      e.textContent = 'No expenses logged for this trip yet.';
+      wrap.appendChild(e);
+      return wrap;
+    }
+
+    const visible = ledgerFilter === 'All' ? tripExpenses : tripExpenses.filter(e => e.category === ledgerFilter);
+
+    const table = document.createElement('table');
+    table.className = 'ledger-table';
+    table.innerHTML = `<thead><tr>
+        <th>Date</th><th>Category</th><th>Note</th><th style="text-align:right">Amount</th><th></th>
+      </tr></thead>`;
+    const tbody = document.createElement('tbody');
+    if(!visible.length){
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td colspan="5" class="ledger-empty">No expenses in this category yet.</td>`;
+      tbody.appendChild(tr);
+    }
+    visible.forEach(exp => {
+      const tr = document.createElement('tr');
+      const dateStr = exp.date ? new Date(exp.date + 'T00:00:00').toLocaleDateString(undefined, {month:'short', day:'numeric'}) : '—';
+      tr.innerHTML = `
+        <td>${dateStr}</td>
+        <td><span class="cat-pill" style="background:${catColor(exp.category)}">${escapeHtml(exp.category)}</span></td>
+        <td class="ledger-note">${exp.note ? escapeHtml(exp.note) : '—'}</td>
+        <td class="ledger-amt">${trip.currency}${fmt(exp.amount)}</td>
+        <td class="row-actions"></td>
+      `;
+      const delBtn = document.createElement('button');
+      delBtn.className = 'icon-btn';
+      delBtn.textContent = '✕';
+      delBtn.title = 'Delete expense';
+      delBtn.addEventListener('click', () => deleteExpense(trip.id, exp.id));
+      tr.querySelector('.row-actions').appendChild(delBtn);
+      tbody.appendChild(tr);
+    });
+    table.appendChild(tbody);
+    wrap.appendChild(table);
+
+    const footer = document.createElement('div');
+    footer.className = 'ledger-footer';
+    const exportCsvBtn = document.createElement('button');
+    exportCsvBtn.className = 'btn-ghost';
+    exportCsvBtn.textContent = 'Export CSV';
+    exportCsvBtn.addEventListener('click', () => exportCsv(trip, tripExpenses));
+    const exportXlsxBtn = document.createElement('button');
+    exportXlsxBtn.className = 'btn-ghost';
+    exportXlsxBtn.textContent = 'Download Excel';
+    exportXlsxBtn.addEventListener('click', () => exportExcel(trip, tripExpenses));
+    footer.appendChild(exportCsvBtn);
+    footer.appendChild(exportXlsxBtn);
+    wrap.appendChild(footer);
+
+    return wrap;
+  }
+
+  function exportCsv(trip, tripExpenses){
+    const rows = [['Date','Category','Note','Amount']];
+    tripExpenses.forEach(e => rows.push([e.date, e.category, (e.note||'').replace(/,/g,';'), e.amount]));
+    const csv = rows.map(r => r.join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = trip.name.replace(/[^a-z0-9]+/gi,'_') + '_expenses.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function exportExcel(trip, tripExpenses){
+    if(typeof XLSX === 'undefined'){ toast("Excel export didn't load — try again"); return; }
+    const wb = XLSX.utils.book_new();
+
+    const totals = categoryTotals(tripExpenses);
+    const grandTotal = totals.reduce((s,[,amt])=> s+amt, 0);
+    const summaryRows = [
+      ['Trip', trip.name],
+      ['Destination', trip.destination || ''],
+      ['Dates', formatRange(trip.startDate, trip.endDate)],
+      ['Currency', trip.currency],
+      ['Budget', trip.budget || 0],
+      [],
+      ['Category', 'Total', 'Share of spend'],
+      ...totals.map(([cat, amt]) => [cat, Number(amt.toFixed(2)), grandTotal ? (amt/grandTotal) : 0]),
+      [],
+      ['Total spent', Number(grandTotal.toFixed(2)), ''],
+    ];
+    const summarySheet = XLSX.utils.aoa_to_sheet(summaryRows);
+    summarySheet['!cols'] = [{wch:18},{wch:16},{wch:14}];
+    XLSX.utils.book_append_sheet(wb, summarySheet, 'By category');
+
+    const sorted = tripExpenses.slice().sort((a,b)=> a.category.localeCompare(b.category) || a.date.localeCompare(b.date));
+    const detailRows = [['Category','Date','Note','Amount']];
+    sorted.forEach(e => detailRows.push([e.category, e.date, e.note || '', Number(Number(e.amount).toFixed(2))]));
+    const detailSheet = XLSX.utils.aoa_to_sheet(detailRows);
+    detailSheet['!cols'] = [{wch:14},{wch:12},{wch:36},{wch:12}];
+    XLSX.utils.book_append_sheet(wb, detailSheet, 'Expenses');
+
+    XLSX.writeFile(wb, trip.name.replace(/[^a-z0-9]+/gi,'_') + '_expenses.xlsx');
+  }
+
+  // ---------- trip modal ----------
+  function openTripModal(trip){
+    editingTripId = trip ? trip.id : null;
+    $('tripModalTitle').textContent = trip ? 'Edit trip' : 'New trip';
+    $('tripName').value = trip ? trip.name : '';
+    $('tripDest').value = trip ? trip.destination : '';
+    $('tripStart').value = trip ? trip.startDate : '';
+    $('tripEnd').value = trip ? trip.endDate : '';
+    $('tripBudget').value = trip ? trip.budget : '';
+    $('tripCurrency').value = trip ? trip.currency : '$';
+    $('tripOverlay').classList.add('open');
+    $('tripName').focus();
+  }
+  function closeTripModal(){ $('tripOverlay').classList.remove('open'); }
+
+  async function saveTripFromModal(){
+    const name = $('tripName').value.trim();
+    if(!name){ toast('Give the trip a name first'); return; }
+    const trip = {
+      id: editingTripId || ('trip_' + Date.now()),
+      name,
+      destination: $('tripDest').value.trim(),
+      startDate: $('tripStart').value,
+      endDate: $('tripEnd').value,
+      budget: parseFloat($('tripBudget').value) || 0,
+      currency: $('tripCurrency').value,
+    };
+    await saveTrip(trip);
+    if(editingTripId){
+      trips = trips.map(t => t.id === trip.id ? trip : t);
+    } else {
+      trips.push(trip);
+      expenses[trip.id] = [];
+      photos[trip.id] = [];
+    }
+    trips.sort((a,b)=> (a.startDate||'').localeCompare(b.startDate||''));
+    const wasNew = !editingTripId;
+    closeTripModal();
+    if(wasNew){
+      openTrip(trip.id);
+    } else {
+      view = 'detail';
+      selectedTripId = trip.id;
+      render();
+    }
+    toast(wasNew ? 'Trip created' : 'Trip updated');
+  }
+
+  async function confirmDeleteTrip(trip){
+    if(!confirm(`Delete "${trip.name}" and all its expenses and photos? This can't be undone.`)) return;
+    await deleteTripStorage(trip.id);
+    trips = trips.filter(t => t.id !== trip.id);
+    delete expenses[trip.id];
+    delete photos[trip.id];
+    goToList();
+    toast('Trip deleted');
+  }
+
+  // ---------- expense modal ----------
+  function openExpenseModal(trip){
+    const catSel = $('expCategory');
+    catSel.innerHTML = '';
+    CATEGORIES.forEach(c => {
+      const opt = document.createElement('option');
+      opt.value = c.name; opt.textContent = c.name;
+      catSel.appendChild(opt);
+    });
+    $('expDate').value = new Date().toISOString().slice(0,10);
+    $('expAmount').value = '';
+    $('expNote').value = '';
+    $('expOverlay').classList.add('open');
+    $('expOverlay').dataset.tripId = trip.id;
+    $('expAmount').focus();
+  }
+  function closeExpenseModal(){ $('expOverlay').classList.remove('open'); }
+
+  async function saveExpenseFromModal(){
+    const tripId = $('expOverlay').dataset.tripId;
+    const amount = parseFloat($('expAmount').value);
+    if(!amount || amount <= 0){ toast('Enter an amount first'); return; }
+    const exp = {
+      id: 'exp_' + Date.now(),
+      date: $('expDate').value || new Date().toISOString().slice(0,10),
+      category: $('expCategory').value,
+      amount,
+      note: $('expNote').value.trim(),
+    };
+    expenses[tripId] = expenses[tripId] || [];
+    expenses[tripId].push(exp);
+    await saveExpenses(tripId);
+    closeExpenseModal();
+    render();
+    toast('Expense added');
+  }
+
+  async function deleteExpense(tripId, expId){
+    expenses[tripId] = (expenses[tripId] || []).filter(e => e.id !== expId);
+    await saveExpenses(tripId);
+    render();
+    toast('Expense removed');
+  }
+
+  // ---------- wire up ----------
+  $('tripCancel').addEventListener('click', closeTripModal);
+  $('tripSave').addEventListener('click', saveTripFromModal);
+  $('tripOverlay').addEventListener('click', e => { if(e.target.id === 'tripOverlay') closeTripModal(); });
+
+  $('expCancel').addEventListener('click', closeExpenseModal);
+  $('expSave').addEventListener('click', saveExpenseFromModal);
+  $('expOverlay').addEventListener('click', e => { if(e.target.id === 'expOverlay') closeExpenseModal(); });
+
+  $('lightboxClose').addEventListener('click', closeLightbox);
+  $('lightboxOverlay').addEventListener('click', e => { if(e.target.id === 'lightboxOverlay') closeLightbox(); });
+
+  $('photoInput').addEventListener('change', e => {
+    const tripId = e.target.dataset.tripId;
+    if(tripId && e.target.files.length) handlePhotoFiles(tripId, e.target.files);
+  });
+
+  document.addEventListener('keydown', e => {
+    if(e.key === 'Escape'){ closeTripModal(); closeExpenseModal(); closeLightbox(); }
+  });
+
+  // ---------- init ----------
+  (async function init(){
+    $('content').innerHTML = '<div class="empty"><h2>Loading your trips…</h2></div>';
+    await loadAll();
+    render();
+  })();
+})();
+</script>
+</body>
+</html>
