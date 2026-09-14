@@ -34,7 +34,7 @@
     min-height: 100vh;
   }
   .app{
-    max-width: 900px;
+    max-width: 960px;
     margin: 0 auto;
     padding: 40px 24px 80px;
   }
@@ -64,29 +64,15 @@
     font-size: 0.95rem;
     max-width: 40ch;
   }
-  .trip-picker{
-    display:flex;
-    gap:10px;
-    align-items:center;
-  }
-  select.trip-select{
-    background: transparent;
-    color: var(--cream);
-    border: 1px solid var(--line-on-navy);
-    border-radius: 8px;
-    padding: 10px 14px;
-    font-family: 'IBM Plex Sans', sans-serif;
-    font-size: 0.92rem;
-    min-width: 180px;
-  }
-  select.trip-select:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visible{
-    outline: 2px solid var(--gold-bright);
-    outline-offset: 2px;
-  }
   button{
     font-family: 'IBM Plex Sans', sans-serif;
     cursor: pointer;
     border: none;
+  }
+  select, input, textarea{ font-family:'IBM Plex Sans', sans-serif; }
+  select:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visible, .trip-card:focus-visible{
+    outline: 2px solid var(--gold-bright);
+    outline-offset: 2px;
   }
   .btn-primary{
     background: var(--gold);
@@ -96,6 +82,7 @@
     border-radius: 8px;
     font-size: 0.92rem;
     transition: background 0.15s ease;
+    white-space: nowrap;
   }
   .btn-primary:hover{ background: var(--gold-bright); }
   .btn-ghost{
@@ -107,6 +94,25 @@
     font-size: 0.88rem;
   }
   .btn-ghost:hover{ border-color: var(--gold); color: var(--gold-bright); }
+  select.trip-select{
+    background: transparent;
+    color: var(--cream);
+    border: 1px solid var(--line-on-navy);
+    border-radius: 8px;
+    padding: 9px 12px;
+    font-size: 0.85rem;
+  }
+  select.trip-select option{ color: var(--ink); }
+  .back-link{
+    background:none;
+    color: rgba(244,239,225,0.7);
+    font-size: 0.88rem;
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    padding: 6px 0;
+  }
+  .back-link:hover{ color: var(--gold-bright); }
 
   /* ---------- Empty state ---------- */
   .empty{
@@ -122,6 +128,79 @@
     margin-bottom: 10px;
   }
 
+  /* ---------- Trip grid (list view) ---------- */
+  .trip-grid{
+    display:grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 20px;
+  }
+  .trip-card{
+    background: var(--cream);
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    text-align: left;
+    color: var(--ink);
+    display: block;
+  }
+  .trip-card:hover{ transform: translateY(-4px); }
+  .trip-card-cover{
+    height: 130px;
+    background: linear-gradient(135deg, var(--navy), var(--navy-deep));
+    position: relative;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .trip-card-cover img{ width:100%; height:100%; object-fit:cover; display:block; }
+  .trip-card-cover .placeholder-mark{
+    font-family:'Fraunces', serif;
+    font-size: 1.8rem;
+    color: rgba(244,239,225,0.28);
+    letter-spacing: 0.04em;
+  }
+  .trip-card-body{ padding: 16px 18px 18px; }
+  .trip-card-name{
+    font-family:'Fraunces', serif;
+    font-weight: 600;
+    font-size: 1.05rem;
+    margin: 0 0 2px;
+  }
+  .trip-card-dest{ font-size: 0.8rem; color: rgba(28,43,74,0.55); margin-bottom: 12px; }
+  .trip-card-bar-track{ height:6px; background: var(--cream-dim); border-radius:4px; overflow:hidden; margin-bottom:8px; }
+  .trip-card-bar-fill{ height:100%; background: var(--sage); border-radius:4px; }
+  .trip-card-bar-fill.over{ background: var(--rust); }
+  .trip-card-meta{ display:flex; justify-content:space-between; font-size: 0.76rem; color: rgba(28,43,74,0.5); }
+  .trip-card-add{
+    border: 2px dashed var(--line-on-navy);
+    border-radius: 14px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    min-height: 190px;
+    color: rgba(244,239,225,0.5);
+    background: transparent;
+    cursor:pointer;
+    font-size: 0.9rem;
+  }
+  .trip-card-add:hover{ border-color: var(--gold); color: var(--gold-bright); }
+  .trip-card-add .plus{ font-family:'Fraunces', serif; font-size: 2rem; line-height:1; }
+
+  /* ---------- Detail sub-header ---------- */
+  .detail-subhead{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 18px;
+  }
+  .detail-subhead .actions{ display:flex; gap:8px; }
+
   /* ---------- Boarding pass card ---------- */
   .pass{
     position: relative;
@@ -134,9 +213,7 @@
     overflow: hidden;
     margin-bottom: 30px;
   }
-  .pass-main{
-    padding: 28px 30px;
-  }
+  .pass-main{ padding: 28px 30px; }
   .pass-eyebrow{
     font-size: 0.72rem;
     letter-spacing: 0.06em;
@@ -151,37 +228,14 @@
     margin: 0 0 4px;
     line-height: 1.05;
   }
-  .pass-dates{
-    color: rgba(28,43,74,0.6);
-    font-size: 0.9rem;
-    margin-bottom: 22px;
-  }
-  .pass-budget-row{
-    display:flex;
-    justify-content: space-between;
-    align-items:baseline;
-    margin-bottom: 8px;
-  }
+  .pass-dates{ color: rgba(28,43,74,0.6); font-size: 0.9rem; margin-bottom: 22px; }
+  .pass-budget-row{ display:flex; justify-content: space-between; align-items:baseline; margin-bottom: 8px; }
   .pass-budget-label{ font-size: 0.82rem; color: rgba(28,43,74,0.65); }
   .pass-budget-amt{ font-family:'IBM Plex Mono', monospace; font-size: 0.95rem; font-weight:500;}
-  .pass-bar-track{
-    height: 8px;
-    background: var(--cream-dim);
-    border-radius: 5px;
-    overflow: hidden;
-  }
-  .pass-bar-fill{
-    height: 100%;
-    border-radius: 5px;
-    background: var(--sage);
-    transition: width 0.4s ease;
-  }
+  .pass-bar-track{ height: 8px; background: var(--cream-dim); border-radius: 5px; overflow: hidden; }
+  .pass-bar-fill{ height: 100%; border-radius: 5px; background: var(--sage); transition: width 0.4s ease; }
   .pass-bar-fill.over{ background: var(--rust); }
-  .pass-remaining{
-    margin-top: 10px;
-    font-size: 0.85rem;
-    color: rgba(28,43,74,0.65);
-  }
+  .pass-remaining{ margin-top: 10px; font-size: 0.85rem; color: rgba(28,43,74,0.65); }
   .pass-remaining strong{ color: var(--ink); }
   .pass-stub{
     background: var(--navy);
@@ -205,18 +259,8 @@
   }
   .pass-stub::before{ top: -11px; }
   .pass-stub::after{ bottom: -11px; }
-  .pass-stub .big-num{
-    font-family:'Fraunces', serif;
-    font-weight: 700;
-    font-size: 2.1rem;
-    line-height: 1;
-  }
-  .pass-stub .big-label{
-    font-size: 0.7rem;
-    letter-spacing: 0.05em;
-    color: rgba(244,239,225,0.6);
-    margin-top: 8px;
-  }
+  .pass-stub .big-num{ font-family:'Fraunces', serif; font-weight: 700; font-size: 2.1rem; line-height: 1; }
+  .pass-stub .big-label{ font-size: 0.7rem; letter-spacing: 0.05em; color: rgba(244,239,225,0.6); margin-top: 8px; }
   @media (max-width: 620px){
     .pass{ grid-template-columns: 1fr; }
     .pass-stub{ border-left:none; border-top: 2px dashed rgba(244,239,225,0.25); flex-direction: row; gap: 12px; padding: 18px; }
@@ -226,192 +270,108 @@
   }
 
   /* ---------- Section headers ---------- */
-  .section-head{
+  .section-head{ display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin: 0 0 14px; }
+  .section-head h2{ font-family:'Fraunces', serif; font-weight: 600; font-size: 1.25rem; margin: 0; }
+
+  /* ---------- Photos ---------- */
+  .photo-section{ margin-bottom: 30px; }
+  .photo-grid{ display:grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 10px; }
+  .photo-thumb{ position:relative; aspect-ratio: 1; border-radius: 10px; overflow:hidden; cursor:pointer; background: rgba(244,239,225,0.06); }
+  .photo-thumb img{ width:100%; height:100%; object-fit:cover; display:block; }
+  .photo-remove{
+    position:absolute; top:5px; right:5px;
+    background: rgba(14,24,48,0.72);
+    color: var(--cream);
+    border-radius: 50%;
+    width: 22px; height: 22px;
+    display:flex; align-items:center; justify-content:center;
+    font-size: 0.7rem;
+    line-height:1;
+  }
+  .photo-remove:hover{ background: var(--rust); }
+  .photo-add-tile{
+    border: 2px dashed var(--line-on-navy);
+    border-radius: 10px;
+    aspect-ratio: 1;
     display:flex;
-    justify-content:space-between;
+    flex-direction:column;
     align-items:center;
-    margin: 0 0 14px;
+    justify-content:center;
+    gap: 4px;
+    color: rgba(244,239,225,0.5);
+    font-size: 0.75rem;
+    cursor:pointer;
+    text-align:center;
+    padding: 6px;
   }
-  .section-head h2{
-    font-family:'Fraunces', serif;
-    font-weight: 600;
-    font-size: 1.25rem;
-    margin: 0;
-  }
+  .photo-add-tile:hover{ border-color: var(--gold); color: var(--gold-bright); }
+  .photo-add-tile .plus{ font-family:'Fraunces', serif; font-size: 1.5rem; line-height:1; }
+  .photo-empty{ color: rgba(244,239,225,0.5); font-size: 0.88rem; margin-bottom: 10px; }
 
   /* ---------- Category chart ---------- */
   .chart-block{ margin-bottom: 30px; }
-  .cat-row{
-    display:grid;
-    grid-template-columns: 110px 1fr 80px;
-    align-items:center;
-    gap: 12px;
-    margin-bottom: 10px;
-    font-size: 0.86rem;
-  }
+  .cat-row{ display:grid; grid-template-columns: 110px 1fr 80px; align-items:center; gap: 12px; margin-bottom: 10px; font-size: 0.86rem; }
   .cat-name{ color: rgba(244,239,225,0.85); }
-  .cat-track{
-    height: 10px;
-    background: rgba(244,239,225,0.1);
-    border-radius: 6px;
-    overflow:hidden;
-  }
-  .cat-fill{
-    height:100%;
-    border-radius:6px;
-    transition: width 0.5s ease;
-  }
-  .cat-amt{
-    font-family:'IBM Plex Mono', monospace;
-    text-align:right;
-    color: rgba(244,239,225,0.85);
-  }
-  .chart-empty{
-    color: rgba(244,239,225,0.5);
-    font-size: 0.88rem;
-    padding: 10px 0;
-  }
+  .cat-track{ height: 10px; background: rgba(244,239,225,0.1); border-radius: 6px; overflow:hidden; }
+  .cat-fill{ height:100%; border-radius:6px; transition: width 0.5s ease; }
+  .cat-amt{ font-family:'IBM Plex Mono', monospace; text-align:right; color: rgba(244,239,225,0.85); }
+  .chart-empty{ color: rgba(244,239,225,0.5); font-size: 0.88rem; padding: 10px 0; }
 
   /* ---------- Ledger ---------- */
   .ledger{ margin-bottom: 20px; }
-  .ledger-table{
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 0.9rem;
-  }
+  .ledger-table{ width: 100%; border-collapse: collapse; font-size: 0.9rem; }
   .ledger-table thead th{
-    text-align:left;
-    font-weight: 500;
-    color: rgba(244,239,225,0.5);
-    font-size: 0.76rem;
-    letter-spacing: 0.03em;
-    padding: 0 10px 10px;
+    text-align:left; font-weight: 500; color: rgba(244,239,225,0.5);
+    font-size: 0.76rem; letter-spacing: 0.03em; padding: 0 10px 10px;
     border-bottom: 1px solid var(--line-on-navy);
   }
-  .ledger-table td{
-    padding: 12px 10px;
-    border-bottom: 1px solid var(--line-on-navy);
-    vertical-align: top;
-  }
+  .ledger-table td{ padding: 12px 10px; border-bottom: 1px solid var(--line-on-navy); vertical-align: top; }
   .ledger-table tbody tr:hover{ background: rgba(244,239,225,0.04); }
   .ledger-amt{ font-family:'IBM Plex Mono', monospace; text-align:right; white-space:nowrap; }
-  .cat-pill{
-    display:inline-block;
-    padding: 3px 9px;
-    border-radius: 20px;
-    font-size: 0.74rem;
-    font-weight: 500;
-    color: var(--navy-deep);
-  }
+  .cat-pill{ display:inline-block; padding: 3px 9px; border-radius: 20px; font-size: 0.74rem; font-weight: 500; color: var(--navy-deep); }
   .ledger-note{ color: rgba(244,239,225,0.55); font-size: 0.84rem; }
   .row-actions{ text-align:right; }
-  .icon-btn{
-    background: none;
-    color: rgba(244,239,225,0.4);
-    font-size: 1rem;
-    padding: 4px 8px;
-    border-radius: 6px;
-  }
+  .icon-btn{ background: none; color: rgba(244,239,225,0.4); font-size: 1rem; padding: 4px 8px; border-radius: 6px; }
   .icon-btn:hover{ color: var(--rust); background: rgba(168,69,47,0.12); }
-  .ledger-empty{
-    text-align:center;
-    padding: 40px 10px;
-    color: rgba(244,239,225,0.5);
-    font-size: 0.9rem;
-  }
-  .ledger-footer{
-    display:flex;
-    justify-content:flex-end;
-    gap: 10px;
-    margin-top: 16px;
-  }
-  select.trip-select option{ color: var(--ink); }
+  .ledger-empty{ text-align:center; padding: 40px 10px; color: rgba(244,239,225,0.5); font-size: 0.9rem; }
+  .ledger-controls{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+  .ledger-footer{ display:flex; justify-content:flex-end; gap: 10px; margin-top: 16px; flex-wrap:wrap; }
 
-  /* ---------- Modal ---------- */
-  .overlay{
-    position: fixed; inset:0;
-    background: rgba(14,24,48,0.6);
-    display:none;
-    align-items:center;
-    justify-content:center;
-    padding: 20px;
-    z-index: 40;
-  }
+  /* ---------- Modal / overlay ---------- */
+  .overlay{ position: fixed; inset:0; background: rgba(14,24,48,0.6); display:none; align-items:center; justify-content:center; padding: 20px; z-index: 40; }
   .overlay.open{ display:flex; }
   .modal{
-    background: var(--cream);
-    color: var(--ink);
-    border-radius: 14px;
-    width: 100%;
-    max-width: 440px;
-    padding: 28px 26px;
-    box-shadow: var(--shadow);
-    max-height: 88vh;
-    overflow-y: auto;
+    background: var(--cream); color: var(--ink); border-radius: 14px; width: 100%; max-width: 440px;
+    padding: 28px 26px; box-shadow: var(--shadow); max-height: 88vh; overflow-y: auto;
   }
-  .modal h3{
-    font-family:'Fraunces', serif;
-    font-weight: 600;
-    font-size: 1.3rem;
-    margin: 0 0 18px;
-  }
+  .modal h3{ font-family:'Fraunces', serif; font-weight: 600; font-size: 1.3rem; margin: 0 0 18px; }
   .field{ margin-bottom: 14px; }
-  .field label{
-    display:block;
-    font-size: 0.78rem;
-    color: rgba(28,43,74,0.6);
-    margin-bottom: 5px;
-  }
+  .field label{ display:block; font-size: 0.78rem; color: rgba(28,43,74,0.6); margin-bottom: 5px; }
   .field input, .field select, .field textarea{
-    width: 100%;
-    padding: 9px 11px;
-    border-radius: 7px;
-    border: 1px solid var(--line);
-    background: #fff;
-    font-family: 'IBM Plex Sans', sans-serif;
-    font-size: 0.92rem;
-    color: var(--ink);
+    width: 100%; padding: 9px 11px; border-radius: 7px; border: 1px solid var(--line);
+    background: #fff; font-size: 0.92rem; color: var(--ink);
   }
   .field-row{ display:flex; gap: 12px; }
   .field-row .field{ flex:1; }
-  .modal-actions{
-    display:flex;
-    justify-content:flex-end;
-    gap: 10px;
-    margin-top: 20px;
-  }
-  .btn-dark{
-    background: var(--navy);
-    color: var(--cream);
-    padding: 10px 18px;
-    border-radius: 8px;
-    font-size: 0.9rem;
-    font-weight: 500;
-  }
+  .modal-actions{ display:flex; justify-content:flex-end; gap: 10px; margin-top: 20px; }
+  .btn-dark{ background: var(--navy); color: var(--cream); padding: 10px 18px; border-radius: 8px; font-size: 0.9rem; font-weight: 500; }
   .btn-dark:hover{ background: var(--navy-deep); }
-  .btn-text{
-    background: none;
-    color: rgba(28,43,74,0.55);
-    padding: 10px 12px;
-    font-size: 0.9rem;
-  }
+  .btn-text{ background: none; color: rgba(28,43,74,0.55); padding: 10px 12px; font-size: 0.9rem; }
   .btn-text:hover{ color: var(--rust); }
 
+  /* ---------- Lightbox ---------- */
+  .lightbox-inner{ position:relative; max-width: 92vw; max-height: 88vh; }
+  .lightbox-inner img{ max-width: 92vw; max-height: 88vh; border-radius: 10px; display:block; box-shadow: var(--shadow); }
+  .lightbox-close{
+    position:absolute; top:-14px; right:-14px; background: var(--cream); color: var(--ink);
+    border-radius: 50%; width: 32px; height:32px; display:flex; align-items:center; justify-content:center; font-size:1rem;
+  }
+
   .toast{
-    position: fixed;
-    bottom: 24px;
-    left: 50%;
-    transform: translateX(-50%) translateY(20px);
-    background: var(--navy-deep);
-    color: var(--cream);
-    padding: 12px 20px;
-    border-radius: 8px;
-    font-size: 0.88rem;
-    box-shadow: var(--shadow);
-    opacity: 0;
-    pointer-events:none;
-    transition: opacity 0.25s ease, transform 0.25s ease;
-    z-index: 60;
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px);
+    background: var(--navy-deep); color: var(--cream); padding: 12px 20px; border-radius: 8px;
+    font-size: 0.88rem; box-shadow: var(--shadow); opacity: 0; pointer-events:none;
+    transition: opacity 0.25s ease, transform 0.25s ease; z-index: 60; max-width: 90vw; text-align:center;
   }
   .toast.show{ opacity:1; transform: translateX(-50%) translateY(0); pointer-events:auto; }
 
@@ -428,17 +388,14 @@
 </head>
 <body>
 <div class="app" id="app">
-
   <div class="hero">
     <div>
       <h1>Wayfare</h1>
       <p>A ledger for every trip — what it cost, where it went, and what's left.</p>
     </div>
-    <div class="trip-picker" id="tripPicker"></div>
+    <div id="headerActions"></div>
   </div>
-
   <div id="content"></div>
-
 </div>
 
 <div class="overlay" id="tripOverlay">
@@ -514,6 +471,15 @@
   </div>
 </div>
 
+<div class="overlay" id="lightboxOverlay">
+  <div class="lightbox-inner">
+    <button class="lightbox-close" id="lightboxClose">✕</button>
+    <img id="lightboxImg" src="" alt="Trip photo">
+  </div>
+</div>
+
+<input type="file" id="photoInput" accept="image/*" multiple style="display:none;">
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -530,7 +496,9 @@
   const catColor = name => (CATEGORIES.find(c => c.name === name) || CATEGORIES[6]).color;
 
   let trips = [];
-  let expenses = {}; // tripId -> array
+  let expenses = {};   // tripId -> array
+  let photos = {};     // tripId -> array of {id, dataUrl}
+  let view = 'list';   // 'list' | 'detail'
   let selectedTripId = null;
   let editingTripId = null;
   let ledgerFilter = 'All';
@@ -546,6 +514,12 @@
 
   function fmt(n){
     return Number(n).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  function escapeHtml(s){
+    const d = document.createElement('div');
+    d.textContent = s;
+    return d.innerHTML;
   }
 
   // ---------- storage ----------
@@ -569,96 +543,35 @@
         const r = await window.storage.get('expenses:' + trip.id);
         expenses[trip.id] = r && r.value ? JSON.parse(r.value) : [];
       }catch(e){ expenses[trip.id] = []; }
+      try{
+        const r = await window.storage.get('photos:' + trip.id);
+        photos[trip.id] = r && r.value ? JSON.parse(r.value) : [];
+      }catch(e){ photos[trip.id] = []; }
     }
-
-    try{
-      const sel = await window.storage.get('ui:selectedTrip');
-      if(sel && sel.value && trips.some(t=>t.id===sel.value)) selectedTripId = sel.value;
-    }catch(e){ /* no prior selection */ }
-
-    if(!selectedTripId && trips.length) selectedTripId = trips[0].id;
   }
 
-  async function saveTrip(trip){
-    await window.storage.set('trips:' + trip.id, JSON.stringify(trip));
-  }
+  async function saveTrip(trip){ await window.storage.set('trips:' + trip.id, JSON.stringify(trip)); }
   async function deleteTripStorage(id){
     await window.storage.delete('trips:' + id);
     await window.storage.delete('expenses:' + id);
+    await window.storage.delete('photos:' + id);
   }
-  async function saveExpenses(tripId){
-    await window.storage.set('expenses:' + tripId, JSON.stringify(expenses[tripId] || []));
-  }
-  async function setSelected(id){
+  async function saveExpenses(tripId){ await window.storage.set('expenses:' + tripId, JSON.stringify(expenses[tripId] || [])); }
+  async function savePhotos(tripId){ await window.storage.set('photos:' + tripId, JSON.stringify(photos[tripId] || [])); }
+
+  function currentTrip(){ return trips.find(t => t.id === selectedTripId); }
+
+  function openTrip(id){
     selectedTripId = id;
     ledgerFilter = 'All';
-    try{ await window.storage.set('ui:selectedTrip', id); }catch(e){}
+    view = 'detail';
     render();
+    window.scrollTo(0,0);
   }
-
-  // ---------- rendering ----------
-  function renderTripPicker(){
-    const el = $('tripPicker');
-    el.innerHTML = '';
-    if(trips.length){
-      const sel = document.createElement('select');
-      sel.className = 'trip-select';
-      trips.forEach(t=>{
-        const opt = document.createElement('option');
-        opt.value = t.id;
-        opt.textContent = t.name;
-        if(t.id === selectedTripId) opt.selected = true;
-        sel.appendChild(opt);
-      });
-      sel.addEventListener('change', e => setSelected(e.target.value));
-      el.appendChild(sel);
-    }
-    const btn = document.createElement('button');
-    btn.className = 'btn-primary';
-    btn.textContent = '+ New trip';
-    btn.addEventListener('click', () => openTripModal());
-    el.appendChild(btn);
-  }
-
-  function currentTrip(){
-    return trips.find(t => t.id === selectedTripId);
-  }
-
-  function render(){
-    renderTripPicker();
-    const content = $('content');
-    const trip = currentTrip();
-
-    if(!trip){
-      content.innerHTML = '';
-      const empty = document.createElement('div');
-      empty.className = 'empty';
-      empty.innerHTML = `<h2>No trips yet</h2><p>Start a trip to begin tracking what it costs.</p>`;
-      const btn = document.createElement('button');
-      btn.className = 'btn-primary';
-      btn.style.marginTop = '16px';
-      btn.textContent = '+ Plan a trip';
-      btn.addEventListener('click', () => openTripModal());
-      empty.appendChild(document.createElement('br'));
-      empty.appendChild(btn);
-      content.appendChild(empty);
-      return;
-    }
-
-    const tripExpenses = (expenses[trip.id] || []).slice().sort((a,b)=> b.date.localeCompare(a.date));
-    const spent = tripExpenses.reduce((s,e)=> s + Number(e.amount), 0);
-    const budget = Number(trip.budget) || 0;
-    const remaining = budget - spent;
-    const pct = budget > 0 ? Math.min(100, (spent / budget) * 100) : 0;
-    const over = budget > 0 && spent > budget;
-    const days = daysBetween(trip.startDate, trip.endDate);
-    const perDay = days > 0 ? spent / days : spent;
-
-    content.innerHTML = '';
-    content.appendChild(buildPass(trip, spent, budget, remaining, pct, over));
-    content.appendChild(buildCategoryChart(trip, tripExpenses, spent));
-    content.appendChild(buildStatsLine(days, perDay, trip.currency));
-    content.appendChild(buildLedger(trip, tripExpenses));
+  function goToList(){
+    view = 'list';
+    render();
+    window.scrollTo(0,0);
   }
 
   function daysBetween(start, end){
@@ -668,82 +581,6 @@
     return diff > 0 ? diff : 0;
   }
 
-  function buildPass(trip, spent, budget, remaining, pct, over){
-    const wrap = document.createElement('div');
-    wrap.className = 'pass';
-
-    const main = document.createElement('div');
-    main.className = 'pass-main';
-    const eyebrow = document.createElement('div');
-    eyebrow.className = 'pass-eyebrow';
-    eyebrow.textContent = trip.name;
-    const dest = document.createElement('div');
-    dest.className = 'pass-dest';
-    dest.textContent = trip.destination || 'Destination TBD';
-    const dates = document.createElement('div');
-    dates.className = 'pass-dates';
-    dates.textContent = formatRange(trip.startDate, trip.endDate);
-
-    const budgetRow = document.createElement('div');
-    budgetRow.className = 'pass-budget-row';
-    budgetRow.innerHTML = `<span class="pass-budget-label">Spent of budget</span>
-      <span class="pass-budget-amt">${trip.currency}${fmt(spent)} ${budget>0 ? '/ ' + trip.currency + fmt(budget) : ''}</span>`;
-
-    const track = document.createElement('div');
-    track.className = 'pass-bar-track';
-    const fill = document.createElement('div');
-    fill.className = 'pass-bar-fill' + (over ? ' over' : '');
-    fill.style.width = (budget > 0 ? pct : (spent>0?100:0)) + '%';
-    track.appendChild(fill);
-
-    const remainingEl = document.createElement('div');
-    remainingEl.className = 'pass-remaining';
-    if(budget > 0){
-      remainingEl.innerHTML = over
-        ? `<strong>${trip.currency}${fmt(Math.abs(remaining))}</strong> over budget`
-        : `<strong>${trip.currency}${fmt(remaining)}</strong> remaining`;
-    } else {
-      remainingEl.textContent = 'No budget set for this trip';
-    }
-
-    main.appendChild(eyebrow);
-    main.appendChild(dest);
-    main.appendChild(dates);
-    main.appendChild(budgetRow);
-    main.appendChild(track);
-    main.appendChild(remainingEl);
-
-    const editRow = document.createElement('div');
-    editRow.style.marginTop = '16px';
-    editRow.style.display = 'flex';
-    editRow.style.gap = '8px';
-    const editBtn = document.createElement('button');
-    editBtn.className = 'btn-ghost';
-    editBtn.style.color = 'var(--ink)';
-    editBtn.style.borderColor = 'var(--line)';
-    editBtn.textContent = 'Edit trip';
-    editBtn.addEventListener('click', () => openTripModal(trip));
-    const delBtn = document.createElement('button');
-    delBtn.className = 'btn-ghost';
-    delBtn.style.color = 'var(--rust)';
-    delBtn.style.borderColor = 'var(--line)';
-    delBtn.textContent = 'Delete trip';
-    delBtn.addEventListener('click', () => confirmDeleteTrip(trip));
-    editRow.appendChild(editBtn);
-    editRow.appendChild(delBtn);
-    main.appendChild(editRow);
-
-    const stub = document.createElement('div');
-    stub.className = 'pass-stub';
-    stub.innerHTML = `<div class="big-num">${tripExpenseCount(trip.id)}</div><div class="big-label">EXPENSES LOGGED</div>`;
-
-    wrap.appendChild(main);
-    wrap.appendChild(stub);
-    return wrap;
-  }
-
-  function tripExpenseCount(id){ return (expenses[id] || []).length; }
-
   function formatRange(start, end){
     if(!start && !end) return 'Dates not set';
     const opts = { month: 'short', day: 'numeric', year: 'numeric' };
@@ -752,7 +589,300 @@
     return `${s} — ${e}`;
   }
 
-  function buildCategoryChart(trip, tripExpenses, spent){
+  function tripSpent(id){ return (expenses[id] || []).reduce((s,e)=> s + Number(e.amount), 0); }
+
+  // ---------- header ----------
+  function renderHeaderActions(){
+    const el = $('headerActions');
+    el.innerHTML = '';
+    if(view === 'list'){
+      const btn = document.createElement('button');
+      btn.className = 'btn-primary';
+      btn.textContent = '+ New trip';
+      btn.addEventListener('click', () => openTripModal());
+      el.appendChild(btn);
+    } else {
+      const back = document.createElement('button');
+      back.className = 'back-link';
+      back.innerHTML = '← All trips';
+      back.addEventListener('click', goToList);
+      el.appendChild(back);
+    }
+  }
+
+  // ---------- router ----------
+  function render(){
+    renderHeaderActions();
+    const content = $('content');
+    content.innerHTML = '';
+    if(view === 'detail' && currentTrip()){
+      content.appendChild(buildDetailView(currentTrip()));
+    } else {
+      view = 'list';
+      content.appendChild(buildListView());
+    }
+  }
+
+  // ---------- list view ----------
+  function buildListView(){
+    const wrap = document.createElement('div');
+    if(!trips.length){
+      wrap.className = 'empty';
+      wrap.innerHTML = `<h2>No trips yet</h2><p>Start a trip to begin tracking what it costs.</p>`;
+      const btn = document.createElement('button');
+      btn.className = 'btn-primary';
+      btn.style.marginTop = '16px';
+      btn.textContent = '+ Plan a trip';
+      btn.addEventListener('click', () => openTripModal());
+      wrap.appendChild(document.createElement('br'));
+      wrap.appendChild(btn);
+      return wrap;
+    }
+
+    const grid = document.createElement('div');
+    grid.className = 'trip-grid';
+    trips.forEach(trip => grid.appendChild(buildTripCard(trip)));
+
+    const addTile = document.createElement('div');
+    addTile.className = 'trip-card-add';
+    addTile.innerHTML = `<span class="plus">+</span><span>New trip</span>`;
+    addTile.addEventListener('click', () => openTripModal());
+    grid.appendChild(addTile);
+
+    wrap.appendChild(grid);
+    return wrap;
+  }
+
+  function buildTripCard(trip){
+    const card = document.createElement('div');
+    card.className = 'trip-card';
+    card.tabIndex = 0;
+
+    const spent = tripSpent(trip.id);
+    const budget = Number(trip.budget) || 0;
+    const pct = budget > 0 ? Math.min(100, (spent / budget) * 100) : (spent > 0 ? 100 : 0);
+    const over = budget > 0 && spent > budget;
+    const cover = (photos[trip.id] && photos[trip.id][0]) ? photos[trip.id][0].dataUrl : null;
+
+    const coverEl = document.createElement('div');
+    coverEl.className = 'trip-card-cover';
+    if(cover){
+      coverEl.innerHTML = `<img src="${cover}" alt="${escapeHtml(trip.name)}">`;
+    } else {
+      coverEl.innerHTML = `<span class="placeholder-mark">${escapeHtml((trip.destination || trip.name || '?').slice(0,1).toUpperCase())}</span>`;
+    }
+
+    const body = document.createElement('div');
+    body.className = 'trip-card-body';
+    body.innerHTML = `
+      <div class="trip-card-name">${escapeHtml(trip.name)}</div>
+      <div class="trip-card-dest">${escapeHtml(trip.destination || 'Destination TBD')}</div>
+      <div class="trip-card-bar-track"><div class="trip-card-bar-fill ${over ? 'over' : ''}" style="width:${pct}%"></div></div>
+      <div class="trip-card-meta">
+        <span>${trip.currency}${fmt(spent)}${budget>0 ? ' / ' + trip.currency + fmt(budget) : ' spent'}</span>
+        <span>${(expenses[trip.id]||[]).length} item${(expenses[trip.id]||[]).length===1?'':'s'}</span>
+      </div>
+    `;
+
+    card.appendChild(coverEl);
+    card.appendChild(body);
+    card.addEventListener('click', () => openTrip(trip.id));
+    card.addEventListener('keydown', e => { if(e.key === 'Enter') openTrip(trip.id); });
+    return card;
+  }
+
+  // ---------- detail view ----------
+  function buildDetailView(trip){
+    const wrap = document.createElement('div');
+
+    const subhead = document.createElement('div');
+    subhead.className = 'detail-subhead';
+    const backBtn = document.createElement('button');
+    backBtn.className = 'back-link';
+    backBtn.innerHTML = '← All trips';
+    backBtn.addEventListener('click', goToList);
+    const actions = document.createElement('div');
+    actions.className = 'actions';
+    const editBtn = document.createElement('button');
+    editBtn.className = 'btn-ghost';
+    editBtn.textContent = 'Edit trip';
+    editBtn.addEventListener('click', () => openTripModal(trip));
+    const delBtn = document.createElement('button');
+    delBtn.className = 'btn-ghost';
+    delBtn.style.color = '#E08A73';
+    delBtn.textContent = 'Delete trip';
+    delBtn.addEventListener('click', () => confirmDeleteTrip(trip));
+    actions.appendChild(editBtn);
+    actions.appendChild(delBtn);
+    subhead.appendChild(backBtn);
+    subhead.appendChild(actions);
+    wrap.appendChild(subhead);
+
+    const tripExpenses = (expenses[trip.id] || []).slice().sort((a,b)=> b.date.localeCompare(a.date));
+    const spent = tripExpenses.reduce((s,e)=> s + Number(e.amount), 0);
+    const budget = Number(trip.budget) || 0;
+    const remaining = budget - spent;
+    const pct = budget > 0 ? Math.min(100, (spent / budget) * 100) : (spent>0?100:0);
+    const over = budget > 0 && spent > budget;
+    const days = daysBetween(trip.startDate, trip.endDate);
+    const perDay = days > 0 ? spent / days : spent;
+
+    wrap.appendChild(buildPass(trip, spent, budget, remaining, pct, over));
+    wrap.appendChild(buildPhotoSection(trip));
+    wrap.appendChild(buildCategoryChart(trip, tripExpenses));
+    wrap.appendChild(buildStatsLine(days, perDay, trip.currency));
+    wrap.appendChild(buildLedger(trip, tripExpenses));
+
+    return wrap;
+  }
+
+  function buildPass(trip, spent, budget, remaining, pct, over){
+    const wrap = document.createElement('div');
+    wrap.className = 'pass';
+
+    const main = document.createElement('div');
+    main.className = 'pass-main';
+    main.innerHTML = `
+      <div class="pass-eyebrow">${escapeHtml(trip.name)}</div>
+      <div class="pass-dest">${escapeHtml(trip.destination || 'Destination TBD')}</div>
+      <div class="pass-dates">${formatRange(trip.startDate, trip.endDate)}</div>
+      <div class="pass-budget-row">
+        <span class="pass-budget-label">Spent of budget</span>
+        <span class="pass-budget-amt">${trip.currency}${fmt(spent)} ${budget>0 ? '/ ' + trip.currency + fmt(budget) : ''}</span>
+      </div>
+      <div class="pass-bar-track"><div class="pass-bar-fill ${over?'over':''}" style="width:${pct}%"></div></div>
+      <div class="pass-remaining">${
+        budget > 0
+          ? (over ? `<strong>${trip.currency}${fmt(Math.abs(remaining))}</strong> over budget` : `<strong>${trip.currency}${fmt(remaining)}</strong> remaining`)
+          : 'No budget set for this trip'
+      }</div>
+    `;
+
+    const stub = document.createElement('div');
+    stub.className = 'pass-stub';
+    stub.innerHTML = `<div class="big-num">${(expenses[trip.id]||[]).length}</div><div class="big-label">EXPENSES LOGGED</div>`;
+
+    wrap.appendChild(main);
+    wrap.appendChild(stub);
+    return wrap;
+  }
+
+  // ---------- photos ----------
+  function buildPhotoSection(trip){
+    const wrap = document.createElement('div');
+    wrap.className = 'photo-section';
+    const head = document.createElement('div');
+    head.className = 'section-head';
+    head.innerHTML = `<h2>Photos</h2>`;
+    wrap.appendChild(head);
+
+    const tripPhotos = photos[trip.id] || [];
+    const grid = document.createElement('div');
+    grid.className = 'photo-grid';
+
+    tripPhotos.forEach(p => {
+      const thumb = document.createElement('div');
+      thumb.className = 'photo-thumb';
+      const img = document.createElement('img');
+      img.src = p.dataUrl;
+      img.alt = 'Trip photo';
+      thumb.appendChild(img);
+      const rm = document.createElement('button');
+      rm.className = 'photo-remove';
+      rm.textContent = '✕';
+      rm.title = 'Remove photo';
+      rm.addEventListener('click', e => { e.stopPropagation(); deletePhoto(trip.id, p.id); });
+      thumb.appendChild(rm);
+      thumb.addEventListener('click', () => openLightbox(p.dataUrl));
+      grid.appendChild(thumb);
+    });
+
+    const addTile = document.createElement('div');
+    addTile.className = 'photo-add-tile';
+    addTile.innerHTML = `<span class="plus">+</span><span>Add photo</span>`;
+    addTile.addEventListener('click', () => {
+      $('photoInput').dataset.tripId = trip.id;
+      $('photoInput').value = '';
+      $('photoInput').click();
+    });
+    grid.appendChild(addTile);
+
+    wrap.appendChild(grid);
+    return wrap;
+  }
+
+  function openLightbox(dataUrl){
+    $('lightboxImg').src = dataUrl;
+    $('lightboxOverlay').classList.add('open');
+  }
+  function closeLightbox(){
+    $('lightboxOverlay').classList.remove('open');
+    $('lightboxImg').src = '';
+  }
+
+  function resizeImage(file){
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const img = new Image();
+        img.onload = () => {
+          const maxDim = 1000;
+          let { width, height } = img;
+          if(width > height){
+            if(width > maxDim){ height = Math.round(height * maxDim / width); width = maxDim; }
+          } else {
+            if(height > maxDim){ width = Math.round(width * maxDim / height); height = maxDim; }
+          }
+          const canvas = document.createElement('canvas');
+          canvas.width = width; canvas.height = height;
+          canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+          resolve(canvas.toDataURL('image/jpeg', 0.72));
+        };
+        img.onerror = () => reject(new Error('Could not read image'));
+        img.src = reader.result;
+      };
+      reader.onerror = () => reject(new Error('Could not read file'));
+      reader.readAsDataURL(file);
+    });
+  }
+
+  async function handlePhotoFiles(tripId, fileList){
+    const files = Array.from(fileList).filter(f => f.type.startsWith('image/'));
+    if(!files.length) return;
+    toast(`Adding ${files.length} photo${files.length===1?'':'s'}…`);
+    photos[tripId] = photos[tripId] || [];
+    let added = 0;
+    for(const file of files){
+      try{
+        const dataUrl = await resizeImage(file);
+        photos[tripId].push({ id: 'photo_' + Date.now() + '_' + Math.random().toString(36).slice(2,7), dataUrl });
+        added++;
+      }catch(e){ /* skip file that failed to process */ }
+    }
+    try{
+      await savePhotos(tripId);
+      render();
+      toast(`${added} photo${added===1?'':'s'} added`);
+    }catch(e){
+      toast("Couldn't save photos — try fewer or smaller images");
+    }
+  }
+
+  async function deletePhoto(tripId, photoId){
+    photos[tripId] = (photos[tripId] || []).filter(p => p.id !== photoId);
+    await savePhotos(tripId);
+    render();
+    toast('Photo removed');
+  }
+
+  // ---------- category chart ----------
+  function categoryTotals(tripExpenses){
+    const totals = {};
+    tripExpenses.forEach(e => { totals[e.category] = (totals[e.category] || 0) + Number(e.amount); });
+    return Object.entries(totals).sort((a,b)=> b[1]-a[1]);
+  }
+
+  function buildCategoryChart(trip, tripExpenses){
     const wrap = document.createElement('div');
     wrap.className = 'chart-block';
     const head = document.createElement('div');
@@ -768,33 +898,19 @@
       return wrap;
     }
 
-    const totals = {};
-    tripExpenses.forEach(e => { totals[e.category] = (totals[e.category] || 0) + Number(e.amount); });
-    const maxVal = Math.max(...Object.values(totals));
+    const totals = categoryTotals(tripExpenses);
+    const maxVal = Math.max(...totals.map(([,v]) => v));
 
-    Object.entries(totals)
-      .sort((a,b)=> b[1]-a[1])
-      .forEach(([cat, amt])=>{
-        const row = document.createElement('div');
-        row.className = 'cat-row';
-        const name = document.createElement('div');
-        name.className = 'cat-name';
-        name.textContent = cat;
-        const track = document.createElement('div');
-        track.className = 'cat-track';
-        const fill = document.createElement('div');
-        fill.className = 'cat-fill';
-        fill.style.width = ((amt / maxVal) * 100) + '%';
-        fill.style.background = catColor(cat);
-        track.appendChild(fill);
-        const amtEl = document.createElement('div');
-        amtEl.className = 'cat-amt';
-        amtEl.textContent = trip.currency + fmt(amt);
-        row.appendChild(name);
-        row.appendChild(track);
-        row.appendChild(amtEl);
-        wrap.appendChild(row);
-      });
+    totals.forEach(([cat, amt]) => {
+      const row = document.createElement('div');
+      row.className = 'cat-row';
+      row.innerHTML = `
+        <div class="cat-name">${escapeHtml(cat)}</div>
+        <div class="cat-track"><div class="cat-fill" style="width:${(amt/maxVal)*100}%; background:${catColor(cat)}"></div></div>
+        <div class="cat-amt">${trip.currency}${fmt(amt)}</div>
+      `;
+      wrap.appendChild(row);
+    });
 
     return wrap;
   }
@@ -802,14 +918,13 @@
   function buildStatsLine(days, perDay, currency){
     const wrap = document.createElement('div');
     wrap.style.cssText = 'color:rgba(244,239,225,0.55); font-size:0.85rem; margin: -14px 0 28px;';
-    if(days > 0){
-      wrap.textContent = `${days} day trip · averaging ${currency}${fmt(perDay)} per day`;
-    } else {
-      wrap.textContent = `Averaging ${currency}${fmt(perDay)} so far`;
-    }
+    wrap.textContent = days > 0
+      ? `${days} day trip · averaging ${currency}${fmt(perDay)} per day`
+      : `Averaging ${currency}${fmt(perDay)} so far`;
     return wrap;
   }
 
+  // ---------- ledger ----------
   function buildLedger(trip, tripExpenses){
     const wrap = document.createElement('div');
     wrap.className = 'ledger';
@@ -817,34 +932,34 @@
     head.className = 'section-head';
     head.innerHTML = `<h2>Expenses</h2>`;
 
-    const headRight = document.createElement('div');
-    headRight.style.cssText = 'display:flex; gap:10px; align-items:center;';
+    const controls = document.createElement('div');
+    controls.className = 'ledger-controls';
 
     if(tripExpenses.length){
+      const usedCats = Array.from(new Set(tripExpenses.map(e => e.category)));
+      if(!usedCats.includes(ledgerFilter)) ledgerFilter = 'All';
       const filterSel = document.createElement('select');
       filterSel.className = 'trip-select';
-      filterSel.style.cssText = 'min-width:0; padding:9px 12px; font-size:0.85rem;';
       const allOpt = document.createElement('option');
       allOpt.value = 'All';
       allOpt.textContent = 'All categories';
       filterSel.appendChild(allOpt);
-      CATEGORIES.forEach(c => {
+      usedCats.forEach(c => {
         const opt = document.createElement('option');
-        opt.value = c.name;
-        opt.textContent = c.name;
+        opt.value = c; opt.textContent = c;
         filterSel.appendChild(opt);
       });
       filterSel.value = ledgerFilter;
       filterSel.addEventListener('change', e => { ledgerFilter = e.target.value; render(); });
-      headRight.appendChild(filterSel);
+      controls.appendChild(filterSel);
     }
 
     const addBtn = document.createElement('button');
     addBtn.className = 'btn-primary';
     addBtn.textContent = '+ Add expense';
     addBtn.addEventListener('click', () => openExpenseModal(trip));
-    headRight.appendChild(addBtn);
-    head.appendChild(headRight);
+    controls.appendChild(addBtn);
+    head.appendChild(controls);
     wrap.appendChild(head);
 
     if(!tripExpenses.length){
@@ -873,7 +988,7 @@
       const dateStr = exp.date ? new Date(exp.date + 'T00:00:00').toLocaleDateString(undefined, {month:'short', day:'numeric'}) : '—';
       tr.innerHTML = `
         <td>${dateStr}</td>
-        <td><span class="cat-pill" style="background:${catColor(exp.category)}">${exp.category}</span></td>
+        <td><span class="cat-pill" style="background:${catColor(exp.category)}">${escapeHtml(exp.category)}</span></td>
         <td class="ledger-note">${exp.note ? escapeHtml(exp.note) : '—'}</td>
         <td class="ledger-amt">${trip.currency}${fmt(exp.amount)}</td>
         <td class="row-actions"></td>
@@ -906,12 +1021,6 @@
     return wrap;
   }
 
-  function escapeHtml(s){
-    const d = document.createElement('div');
-    d.textContent = s;
-    return d.innerHTML;
-  }
-
   function exportCsv(trip, tripExpenses){
     const rows = [['Date','Category','Note','Amount']];
     tripExpenses.forEach(e => rows.push([e.date, e.category, (e.note||'').replace(/,/g,';'), e.amount]));
@@ -925,18 +1034,10 @@
     URL.revokeObjectURL(url);
   }
 
-  function categoryTotals(tripExpenses){
-    const totals = {};
-    tripExpenses.forEach(e => { totals[e.category] = (totals[e.category] || 0) + Number(e.amount); });
-    return Object.entries(totals).sort((a,b)=> b[1]-a[1]);
-  }
-
   function exportExcel(trip, tripExpenses){
     if(typeof XLSX === 'undefined'){ toast("Excel export didn't load — try again"); return; }
-
     const wb = XLSX.utils.book_new();
 
-    // Sheet 1: category-wise summary
     const totals = categoryTotals(tripExpenses);
     const grandTotal = totals.reduce((s,[,amt])=> s+amt, 0);
     const summaryRows = [
@@ -955,10 +1056,7 @@
     summarySheet['!cols'] = [{wch:18},{wch:16},{wch:14}];
     XLSX.utils.book_append_sheet(wb, summarySheet, 'By category');
 
-    // Sheet 2: full expense detail, grouped so category-wise rows sit together
-    const sorted = tripExpenses.slice().sort((a,b)=>
-      a.category.localeCompare(b.category) || a.date.localeCompare(b.date)
-    );
+    const sorted = tripExpenses.slice().sort((a,b)=> a.category.localeCompare(b.category) || a.date.localeCompare(b.date));
     const detailRows = [['Category','Date','Note','Amount']];
     sorted.forEach(e => detailRows.push([e.category, e.date, e.note || '', Number(Number(e.amount).toFixed(2))]));
     const detailSheet = XLSX.utils.aoa_to_sheet(detailRows);
@@ -1001,21 +1099,28 @@
     } else {
       trips.push(trip);
       expenses[trip.id] = [];
+      photos[trip.id] = [];
     }
     trips.sort((a,b)=> (a.startDate||'').localeCompare(b.startDate||''));
+    const wasNew = !editingTripId;
     closeTripModal();
-    await setSelected(trip.id);
-    toast(editingTripId ? 'Trip updated' : 'Trip created');
+    if(wasNew){
+      openTrip(trip.id);
+    } else {
+      view = 'detail';
+      selectedTripId = trip.id;
+      render();
+    }
+    toast(wasNew ? 'Trip created' : 'Trip updated');
   }
 
   async function confirmDeleteTrip(trip){
-    if(!confirm(`Delete "${trip.name}" and all its expenses? This can't be undone.`)) return;
+    if(!confirm(`Delete "${trip.name}" and all its expenses and photos? This can't be undone.`)) return;
     await deleteTripStorage(trip.id);
     trips = trips.filter(t => t.id !== trip.id);
     delete expenses[trip.id];
-    selectedTripId = trips.length ? trips[0].id : null;
-    try{ await window.storage.set('ui:selectedTrip', selectedTripId || ''); }catch(e){}
-    render();
+    delete photos[trip.id];
+    goToList();
     toast('Trip deleted');
   }
 
@@ -1025,8 +1130,7 @@
     catSel.innerHTML = '';
     CATEGORIES.forEach(c => {
       const opt = document.createElement('option');
-      opt.value = c.name;
-      opt.textContent = c.name;
+      opt.value = c.name; opt.textContent = c.name;
       catSel.appendChild(opt);
     });
     $('expDate').value = new Date().toISOString().slice(0,10);
@@ -1073,8 +1177,16 @@
   $('expSave').addEventListener('click', saveExpenseFromModal);
   $('expOverlay').addEventListener('click', e => { if(e.target.id === 'expOverlay') closeExpenseModal(); });
 
+  $('lightboxClose').addEventListener('click', closeLightbox);
+  $('lightboxOverlay').addEventListener('click', e => { if(e.target.id === 'lightboxOverlay') closeLightbox(); });
+
+  $('photoInput').addEventListener('change', e => {
+    const tripId = e.target.dataset.tripId;
+    if(tripId && e.target.files.length) handlePhotoFiles(tripId, e.target.files);
+  });
+
   document.addEventListener('keydown', e => {
-    if(e.key === 'Escape'){ closeTripModal(); closeExpenseModal(); }
+    if(e.key === 'Escape'){ closeTripModal(); closeExpenseModal(); closeLightbox(); }
   });
 
   // ---------- init ----------
